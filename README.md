@@ -1,6 +1,8 @@
 # entitlement-forward-auth
 
-A [forward auth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) microservice that gates routes behind your reverse proxy with mobile in-app purchase entitlements. nginx, Traefik, and Caddy ask "is this request allowed?" on every request; this service answers by checking the caller's subscription status against their IAP provider.
+Put self-hosted services behind your app's subscriptions — without modifying them. A [forward auth](https://doc.traefik.io/traefik/middlewares/http/forwardauth/) microservice that nginx, Traefik, and Caddy consult on every request; it answers by checking the caller's in-app purchase entitlements against their provider.
+
+It's built for services you run but didn't write — a self-hosted LLM server, a document converter, any internal tool. These typically ship with no authentication at all, or a single static API key you'd otherwise have to embed in the app binary. Either way you can't add per-user subscription checks to their code. With forward auth you don't need to: the gate lives in the reverse proxy, the service behind it never knows it's protected, and static upstream keys stay on the server.
 
 Supported providers: **RevenueCat**, **Adapty**, **Qonversion**, **Apphud**, **IAP Hub**.
 
@@ -36,10 +38,12 @@ apps:
       - sk_old
 
 routes:
-  - host: premium.example.com
-    paths: [/v1/*]
+  - host: ai.example.com
+    paths: [/v1/generate, /v1/complete] # gate only the expensive endpoints
     entitlements: [pro] # any one active entitlement grants access
-    headers: # extra headers injected into the allowed request
+  - host: convert.example.com # service behind a static API key:
+    paths: [/v1/*] # the key stays server-side, the app never sees it
+    headers:
       Authorization: Bearer master_key
 ```
 
@@ -68,8 +72,8 @@ import { utf8ToBytes, bytesToHex } from "@noble/hashes/utils.js";
 const timestamp = String(Date.now());
 const message = [
   "GET", // method, uppercased
-  "premium.example.com", // host, lowercased
-  "/v1/complete?x=1", // path, including the query string
+  "ai.example.com", // host, lowercased
+  "/v1/generate?x=1", // path, including the query string
   timestamp,
   "user-123",
 ].join("\n");
@@ -143,10 +147,10 @@ server {
 ```yaml
 http:
   routers:
-    premium:
-      rule: "Host(`premium.example.com`)"
+    ai:
+      rule: "Host(`ai.example.com`)"
       middlewares: [entitlement-auth]
-      service: premium
+      service: ai
 
   middlewares:
     entitlement-auth:
@@ -160,7 +164,7 @@ http:
 **Caddy**:
 
 ```caddyfile
-premium.example.com {
+ai.example.com {
     forward_auth auth:3000 {
         uri /forward-auth
         copy_headers X-Forwarded-App X-Forwarded-User

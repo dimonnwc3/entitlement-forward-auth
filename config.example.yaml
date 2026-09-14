@@ -32,16 +32,18 @@ defaultApp: myapp
 # end with "/*", which matches the base path itself and everything under it
 # ("/v1/*" matches "/v1", "/v1/x"; "/*" matches anything).
 routes:
-  # several paths behind one policy
-  - host: api.example.com
-    paths: [/v1/complete, /v2/complete]
+  # several endpoints behind one policy
+  - host: ai.example.com
+    paths: [/v1/generate, /v1/complete]
   # host match: any path, any method on this host
   - host: convert.example.com
   # only writes are gated
   - host: ingest.example.com
     methods: [POST, PUT]
     paths: [/v1/*]
-  - host: premium.example.com
+  # gated by entitlement; injects the service's static API key,
+  # which never ships in the app binary
+  - host: api.example.com
     paths: [/*]
     # any one of these entitlements grants access
     entitlements: [pro]
