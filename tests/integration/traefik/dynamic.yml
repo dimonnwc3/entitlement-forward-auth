@@ -1,0 +1,23 @@
+http:
+  routers:
+    whoami:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - web
+      middlewares:
+        - rc-auth
+      service: whoami
+
+  services:
+    whoami:
+      loadBalancer:
+        servers:
+          - url: "http://whoami:80"
+
+  middlewares:
+    rc-auth:
+      forwardAuth:
+        address: "http://auth:3000/forward-auth"
+        authResponseHeaders:
+          - X-Forwarded-App
+          - X-Forwarded-User

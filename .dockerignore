@@ -1,0 +1,10 @@
+node_modules
+.git
+.scratch
+docs
+*.test.ts
+Dockerfile
+.dockerignore
+config.yaml
+config.example.yaml
+.env

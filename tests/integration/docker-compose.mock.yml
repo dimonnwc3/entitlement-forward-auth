@@ -1,0 +1,23 @@
+# Mock RevenueCat API for --mock mode: proves proxy plumbing without real API key.
+# Real RC behavior emulated: unknown user gets 201 (created), existing gets 200.
+services:
+  auth:
+    environment:
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+    extra_hosts:
+      - "api.revenuecat.com:172.28.77.10"
+
+  mockrc:
+    image: caddy:2.10-alpine
+    command:
+      - caddy
+      - run
+      - --config
+      - /etc/caddy/Caddyfile
+      - --adapter
+      - caddyfile
+    volumes:
+      - ./caddy/mockrc.Caddyfile:/etc/caddy/Caddyfile:ro
+    networks:
+      proxies:
+        ipv4_address: 172.28.77.10

@@ -1,0 +1,13 @@
+{
+	skip_install_trust
+	admin off
+}
+
+https://api.revenuecat.com {
+	tls internal
+	respond /v1/subscribers/rcoutage* 503
+	respond /v1/subscribers/rclimited* 429
+	respond /v1/subscribers/rcbadkey* 401
+	respond /v1/subscribers/nosuchuser* "{\"subscriber\":{\"entitlements\":{}}}" 201
+	respond /v1/subscribers/* "{\"subscriber\":{\"entitlements\":{}}}" 200
+}

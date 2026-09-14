@@ -1,0 +1,7 @@
+:80 {
+	forward_auth auth:3000 {
+		uri /forward-auth
+		copy_headers X-Forwarded-App X-Forwarded-User
+	}
+	reverse_proxy whoami:80
+}

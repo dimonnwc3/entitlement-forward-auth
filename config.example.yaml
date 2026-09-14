@@ -1,0 +1,51 @@
+# Optional: override auth request header names (defaults shown, partial override ok)
+authHeaders:
+  app: X-Auth-App
+  user: X-Auth-User
+  timestamp: X-Auth-Timestamp
+  signature: X-Auth-Signature
+
+# Optional: identity headers returned to the proxy on success
+responseHeaders:
+  app: X-Forwarded-App
+  user: X-Forwarded-User
+
+# app registry: keys are app ids sent by clients (X-Auth-App header).
+apps:
+  myapp:
+    provider:
+      name: revenuecat
+      secretKey: sk_secret_key
+    # optional, enables HMAC request signing.
+    # sign with the first secret, verify against any — rotation overlap
+    signingSecrets:
+      - sk_signing_secret_v2
+      - sk_signing_secret_v1
+
+# optional: used when the client sends no app header, must be an apps key
+defaultApp: myapp
+
+# routes: a request matches when host, paths, methods all match (AND),
+# entries inside each list are alternatives (OR). A missing field matches anything.
+# First match wins: host-scoped routes beat hostless ones, then the longest
+# path pattern wins. "paths" entries are exact ("/v1/complete") unless they
+# end with "/*", which matches the base path itself and everything under it
+# ("/v1/*" matches "/v1", "/v1/x"; "/*" matches anything).
+routes:
+  # several paths behind one policy
+  - host: api.example.com
+    paths: [/v1/complete, /v2/complete]
+  # host match: any path, any method on this host
+  - host: convert.example.com
+  # only writes are gated
+  - host: ingest.example.com
+    methods: [POST, PUT]
+    paths: [/v1/*]
+  - host: premium.example.com
+    paths: [/*]
+    # any one of these entitlements grants access
+    entitlements: [pro]
+    headers:
+      Authorization: Bearer master_key
+  # hostless catch-all
+  - paths: [/*]
