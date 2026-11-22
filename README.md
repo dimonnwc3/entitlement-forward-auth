@@ -65,22 +65,22 @@ With `signingSecrets` configured, requests must carry a timestamp and an HMAC:
 Computing it with [@noble/hashes](https://github.com/paulmillr/noble-hashes) — pure JS, runs in React Native and Expo with no native modules (browsers and Node too):
 
 ```js
-import { hmac } from "@noble/hashes/hmac.js";
-import { sha256 } from "@noble/hashes/sha2.js";
-import { utf8ToBytes, bytesToHex } from "@noble/hashes/utils.js";
+import { hmac } from "@noble/hashes/hmac.js"
+import { sha256 } from "@noble/hashes/sha2.js"
+import { utf8ToBytes, bytesToHex } from "@noble/hashes/utils.js"
 
-const timestamp = String(Date.now());
+const timestamp = String(Date.now())
 const message = [
   "GET", // method, uppercased
   "ai.example.com", // host, lowercased
   "/v1/generate?x=1", // path, including the query string
   timestamp,
   "user-123",
-].join("\n");
+].join("\n")
 
 const signature = bytesToHex(
   hmac(sha256, utf8ToBytes("sk_new"), utf8ToBytes(message)),
-);
+)
 ```
 
 Rotation: clients sign with the first secret in the list, verification accepts any — add the new secret at the front, drop the old one once clients have rotated. All header names are configurable via `authHeaders` / `responseHeaders`.
@@ -177,9 +177,9 @@ ai.example.com {
 
 ```bash
 bun install
-bun test         # unit tests
-bun run check    # biome lint + format
-bun run typecheck
+bun test   # unit tests
+bun fmt    # bun format
+bun check
 ```
 
 ## License
